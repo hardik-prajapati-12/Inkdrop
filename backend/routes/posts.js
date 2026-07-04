@@ -259,4 +259,6 @@ router.post('/:id/like', protect, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+console.log("posts.js loaded");
+
 module.exports = router;

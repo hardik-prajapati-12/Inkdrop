@@ -34,6 +34,7 @@ app.get('/test', (req, res) => {
     time: new Date()
   });
 });
+console.log("Loading posts router...");
 // ── Routes ──────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/posts', require('./routes/posts'));
