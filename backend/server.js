@@ -27,6 +27,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://user:<db_password>@bl
   .then(() => console.log('✅  MongoDB connected successfully'))
   .catch(err => console.error('❌  MongoDB connection error:', err));
 
+app.get('/test', (req, res) => {
+  res.json({ message: 'Test route is working!' });
+});
+
 // ── Routes ──────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/posts', require('./routes/posts'));
