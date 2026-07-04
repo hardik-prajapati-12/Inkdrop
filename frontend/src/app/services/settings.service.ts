@@ -4,9 +4,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Settings } from '../models';
 
+import { environment } from '../../environments/environment';
+
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
-  private api = 'http://localhost:5000/api/settings';
+  private api = `${environment.apiUrl}/settings`;
 
   constructor(private http: HttpClient) {}
 

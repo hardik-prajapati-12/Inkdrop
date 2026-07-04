@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PostService } from '../../services/post.service';
 import { Post } from '../../models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-tag',
@@ -11,6 +12,7 @@ import { Post } from '../../models';
   styleUrls: ['./tag.component.css']
 })
 export class TagComponent implements OnInit, OnDestroy {
+  imageUrl = environment.imageUrl;
   tagName       = '';
   posts:         Post[]   = [];
   popularPosts:  Post[]   = [];
@@ -114,6 +116,6 @@ export class TagComponent implements OnInit, OnDestroy {
   getImageUrl(path: string): string {
     if (!path) return 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80';
     if (path.startsWith('http')) return path;
-    return `http://localhost:5000${path}`;
+    return `${environment.imageUrl}${path}`;
   }
 }

@@ -274,7 +274,7 @@
         <div class="profile-post-item" *ngFor="let post of myPosts"
              (click)="goToPost(post.slug)">
           <div class="ppi-img-wrap" *ngIf="post.coverImage">
-            <img [src]="post.coverImage.startsWith('http') ? post.coverImage : 'http://localhost:5000' + post.coverImage"
+            <img [src]="post.coverImage.startsWith('http') ? post.coverImage : imageUrl + post.coverImage"
                  [alt]="post.title" class="ppi-img"
                  onerror="this.style.display='none'">
           </div>

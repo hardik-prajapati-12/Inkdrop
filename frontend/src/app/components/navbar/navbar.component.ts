@@ -3,6 +3,7 @@ import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-navbar',
@@ -10,6 +11,7 @@ import { User } from '../../models';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit {
+  imageUrl = environment.imageUrl;
   user: User | null = null;
   isScrolled = false;
   menuOpen = false;

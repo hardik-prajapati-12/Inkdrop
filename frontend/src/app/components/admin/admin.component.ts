@@ -8,6 +8,7 @@ import { AuthService }    from '../../services/auth.service';
 import { MessageService } from '../../services/message.service';
 import { SettingsService } from '../../services/settings.service';
 import { Post, Category, User, Message, MessageStats, Comment, CommentStats, Settings } from '../../models';
+import { environment } from '../../../environments/environment';
 
 type AdminTab = 'overview' | 'posts' | 'create' | 'categories' | 'users' | 'comments' | 'messages' | 'settings';
 
@@ -18,6 +19,7 @@ type AdminTab = 'overview' | 'posts' | 'create' | 'categories' | 'users' | 'comm
   styleUrls: ['./admin.component.css']
 })
 export class AdminComponent implements OnInit {
+  imageUrl = environment.imageUrl;
   activeTab: AdminTab = 'overview';
 
   // Data
@@ -104,7 +106,7 @@ export class AdminComponent implements OnInit {
   }
 
   verifyRoleFromServer(): void {
-    this.http.get<{ user: User }>('http://localhost:5000/api/auth/me').subscribe({
+    this.http.get<{ user: User }>(`${environment.apiUrl}/auth/me`).subscribe({
       next: (res) => {
         if (res.user.role !== this.auth.currentUser?.role) {
           localStorage.setItem('blog_user', JSON.stringify(res.user));
@@ -170,7 +172,7 @@ export class AdminComponent implements OnInit {
   // ── Overview ──────────────────────────────────────────────
   loadOverview(): void {
     this.overviewLoading = true;
-    this.http.get<any>('http://localhost:5000/api/stats/overview').subscribe({
+    this.http.get<any>(`${environment.apiUrl}/stats/overview`).subscribe({
       next: (data) => {
         this.overviewStats   = data;
         this.topPosts        = data.topPosts || [];
@@ -600,7 +602,7 @@ export class AdminComponent implements OnInit {
       category: post.category?._id || '', tags: post.tags?.join(', ') || '', status: post.status
     });
     this.previewUrl = post.coverImage
-      ? (post.coverImage.startsWith('http') ? post.coverImage : `http://localhost:5000${post.coverImage}`)
+      ? (post.coverImage.startsWith('http') ? post.coverImage : `${environment.imageUrl}${post.coverImage}`)
       : '';
     this.activeTab = 'create';
     if (this.categories.length === 0) this.loadCategories();
@@ -645,7 +647,7 @@ export class AdminComponent implements OnInit {
   getImageUrl(path: string): string {
     if (!path) return 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=100&q=80';
     if (path.startsWith('http')) return path;
-    return `http://localhost:5000${path}`;
+    return `${environment.imageUrl}${path}`;
   }
 
   getCategoryIconClass(icon: string | undefined): string {

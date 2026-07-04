@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService }  from '../../services/auth.service';
 import { PostService }  from '../../services/post.service';
 import { User }         from '../../models';
+import { environment }  from '../../../environments/environment';
 
 @Component({
   selector: 'app-about',
@@ -105,7 +106,7 @@ export class AboutComponent implements OnInit {
   getAvatarUrl(avatar: string | undefined): string | null {
     if (!avatar || avatar.trim() === '') return null;
     if (avatar.startsWith('http')) return avatar;
-    return `http://localhost:5000${avatar}`;
+    return `${environment.imageUrl}${avatar}`;
   }
 
   getMemberSince(createdAt: string): string {

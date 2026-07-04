@@ -82,7 +82,7 @@
           <img
             [src]="auth.currentUser?.avatar?.startsWith('http')
               ? auth.currentUser?.avatar
-              : 'http://localhost:5000' + auth.currentUser?.avatar"
+              : imageUrl + auth.currentUser?.avatar"
             class="admin-avatar-img"
             [alt]="auth.currentUser?.username"
             onerror="this.style.display='none'">

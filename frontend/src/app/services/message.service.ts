@@ -3,10 +3,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Message, MessageStats } from '../models';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class MessageService {
-  private api = 'https://inkdrop-5ngg.onrender.com/api/messages';
+  private api = `${environment.apiUrl}/messages`;
 
   constructor(private http: HttpClient) {}
 

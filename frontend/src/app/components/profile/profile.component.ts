@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { PostService } from '../../services/post.service';
 import { User, Post } from '../../models';
+import { environment } from '../../../environments/environment';
 
 type ProfileTab = 'info' | 'security' | 'posts' | 'activity';
 
@@ -14,6 +15,7 @@ type ProfileTab = 'info' | 'security' | 'posts' | 'activity';
   styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit {
+  imageUrl = environment.imageUrl;
   user: User | null = null;
   activeTab: ProfileTab = 'info';
 
@@ -89,7 +91,7 @@ export class ProfileComponent implements OnInit {
   buildAvatarUrl(avatar?: string): string {
     if (!avatar) return '';
     if (avatar.startsWith('http')) return avatar;
-    return `http://localhost:5000${avatar}`;
+    return `${environment.imageUrl}${avatar}`;
   }
 
   /** Triggered when user clicks the avatar area and picks a file */

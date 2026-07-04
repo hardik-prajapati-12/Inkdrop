@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { PostService } from '../../services/post.service';
 import { Post, Category } from '../../models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-category',
@@ -55,6 +56,6 @@ export class CategoryComponent implements OnInit {
   getImageUrl(path: string): string {
     if (!path) return 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=600&q=80';
     if (path.startsWith('http')) return path;
-    return `http://localhost:5000${path}`;
+    return `${environment.imageUrl}${path}`;
   }
 }

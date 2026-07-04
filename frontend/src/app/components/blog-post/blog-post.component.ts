@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PostService } from '../../services/post.service';
 import { AuthService } from '../../services/auth.service';
 import { Post, Comment } from '../../models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-blog-post',
@@ -64,7 +65,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   getAvatarUrl(avatar?: string): string {
     if (!avatar) return '';
     if (avatar.startsWith('http')) return avatar;
-    return `http://localhost:5000${avatar}`;
+    return `${environment.imageUrl}${avatar}`;
   }
 
   // ── Tag navigation ─────────────────────────────────────────
@@ -201,7 +202,7 @@ export class BlogPostComponent implements OnInit, OnDestroy {
   getImageUrl(path: string): string {
     if (!path) return 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1200&q=80';
     if (path.startsWith('http')) return path;
-    return `http://localhost:5000${path}`;
+    return `${environment.imageUrl}${path}`;
   }
 
   getCategoryIconClass(icon: string | undefined): string {

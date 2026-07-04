@@ -60,7 +60,7 @@
           <p class="featured-excerpt">{{ featuredPosts[0].excerpt | slice:0:140 }}...</p>
           <div class="post-meta">
             <img *ngIf="featuredPosts[0].author.avatar"
-                 [src]="featuredPosts[0].author.avatar.startsWith('http') ? featuredPosts[0].author.avatar : 'http://localhost:5000' + featuredPosts[0].author.avatar"
+                 [src]="featuredPosts[0].author.avatar.startsWith('http') ? featuredPosts[0].author.avatar : imageUrl + featuredPosts[0].author.avatar"
                  class="meta-avatar meta-avatar-img"
                  [alt]="featuredPosts[0].author.username"
                  onerror="this.style.display='none'">
@@ -231,7 +231,7 @@
           <div class="post-meta">
             <!-- Author avatar: real photo if available, else initials -->
             <img *ngIf="post.author.avatar"
-                 [src]="post.author.avatar.startsWith('http') ? post.author.avatar : 'http://localhost:5000' + post.author.avatar"
+                 [src]="post.author.avatar.startsWith('http') ? post.author.avatar : imageUrl + post.author.avatar"
                  class="meta-avatar meta-avatar-img"
                  [alt]="post.author.username"
                  [class.author-highlight]="searchMatchType === 'author'"

@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 type Step = 'email' | 'otp' | 'newpass' | 'done';
 
@@ -32,7 +33,7 @@ export class ResetPasswordComponent implements OnInit {
   showNew     = false;
   showConfirm = false;
 
-  private api = 'http://localhost:5000/api/auth';
+  private api = `${environment.apiUrl}/auth`;
 
   constructor(
     private fb:     FormBuilder,

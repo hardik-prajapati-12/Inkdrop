@@ -39,7 +39,7 @@
             <ng-container *ngIf="user?.avatar; else navbarInitials">
               <img [src]="user?.avatar?.startsWith('http') 
     ? user?.avatar 
-    : 'http://localhost:5000' + user?.avatar"
+    : imageUrl + user?.avatar"
                    class="avatar-circle nav-avatar-img"
                    [alt]="user?.username"
                    onerror="this.style.display='none'">
@@ -106,7 +106,7 @@
           <ng-container *ngIf="user?.avatar; else mobileInitials">
             <img [src]="user?.avatar?.startsWith('http') 
     ? user?.avatar 
-    : 'http://localhost:5000' + user?.avatar"
+    : imageUrl + user?.avatar"
                  class="avatar-circle nav-avatar-img"
                  [alt]="user?.username"
                  onerror="this.style.display='none'">

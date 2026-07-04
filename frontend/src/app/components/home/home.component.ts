@@ -2,6 +2,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, NgZone } from '@angular/core';
 import { PostService } from '../../services/post.service';
 import { Post, Category } from '../../models';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -9,6 +10,7 @@ import { Post, Category } from '../../models';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+  imageUrl = environment.imageUrl;
   featuredPosts: Post[] = [];
   posts: Post[]          = [];
   categories: Category[] = [];
@@ -246,7 +248,7 @@ export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   getImageUrl(imagePath: string): string {
     if (!imagePath) return 'assets/default-cover.jpg';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5000${imagePath}`;
+    return `${environment.imageUrl}${imagePath}`;
   }
 
   getCategoryIconClass(icon: string | undefined): string {
