@@ -1,0 +1,168 @@
+<!-- src/app/components/about/about.component.html -->
+
+<!-- Hero -->
+<section class="about-hero">
+  <div class="about-hero-glow"></div>
+  <div class="container">
+    <div class="section-label">✦ Our Story</div>
+    <h1 class="about-title fade-in">
+      Where ideas find<br>
+      <em class="accent-italic">their voice.</em>
+    </h1>
+    <p class="about-desc fade-in fade-in-delay-1">
+      InkDrop was born from a simple belief: great writing can change how people think, feel, and act.
+      We are a community-driven blog platform dedicated to thoughtful, original content.
+    </p>
+    <div class="about-hero-stats fade-in fade-in-delay-2">
+      <!-- Founded year — updated to 2026 -->
+      <div class="about-stat">
+        <span class="about-stat-num">2026</span>
+        <span class="about-stat-label">Founded</span>
+      </div>
+      <div class="stat-divider"></div>
+
+      <!-- Total readers — real sum of all post views -->
+      <div class="about-stat">
+        <span class="about-stat-num">
+          <ng-container *ngIf="statsLoaded">{{ formatReaders(totalReaders) }}</ng-container>
+          <span class="stat-loading" *ngIf="!statsLoaded">—</span>
+        </span>
+        <span class="about-stat-label">Total Readers</span>
+      </div>
+      <div class="stat-divider"></div>
+
+      <!-- Contributors — live count of admin + author accounts -->
+      <div class="about-stat">
+        <span class="about-stat-num">{{ team.length }}</span>
+        <span class="about-stat-label">Contributors</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Mission -->
+<section class="mission-section">
+  <div class="container">
+    <div class="mission-grid">
+      <div class="mission-text fade-in">
+        <div class="section-label">🎯 Mission</div>
+        <h2>We believe the world is shaped by stories.</h2>
+        <p>InkDrop exists to give ideas a home. From deep-dive tech tutorials to philosophical musings, from travel diaries to productivity hacks — we cover what matters to curious, thoughtful people.</p>
+        <p>Our editorial team works tirelessly to curate only the most valuable, well-researched, and engaging content for our global community of readers.</p>
+        <a routerLink="/contact" class="btn btn-outline">Get in Touch →</a>
+      </div>
+      <div class="mission-visual fade-in fade-in-delay-1">
+        <div class="mission-card">
+          <div class="quote-mark">"</div>
+          <blockquote class="mission-quote">
+            Writing is the painting of the voice. Every word is a brushstroke that creates a world.
+          </blockquote>
+          <div class="quote-author">— InkDrop Manifesto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Values -->
+<section class="values-section">
+  <div class="container">
+    <div class="section-label" style="justify-content:center">💎 Core Values</div>
+    <h2 class="section-title text-center">What we stand for</h2>
+    <div class="values-grid">
+      <div class="value-card fade-in" *ngFor="let v of values; let i = index"
+           [style.animation-delay]="(i * 0.08) + 's'">
+        <span class="value-icon">{{ v.icon }}</span>
+        <h4 class="value-title">{{ v.title }}</h4>
+        <p class="value-desc">{{ v.desc }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TEAM — Live from database ═══ -->
+<section class="team-section">
+  <div class="container">
+    <div class="section-label">👥 The Team</div>
+    <h2 class="section-title">The people behind InkDrop</h2>
+
+    <!-- Loading skeleton -->
+    <div class="team-skeleton-grid" *ngIf="teamLoading">
+      <div class="team-skeleton" *ngFor="let s of [1,2,3,4]"></div>
+    </div>
+
+    <!-- Error state -->
+    <div class="team-error" *ngIf="teamError && !teamLoading">
+      <span class="team-error-icon">⚠</span>
+      <p>{{ teamError }}</p>
+      <button class="btn btn-outline" (click)="loadTeam()">Try Again</button>
+    </div>
+
+    <!-- Empty state (no authors registered yet) -->
+    <div class="team-empty" *ngIf="!teamLoading && !teamError && team.length === 0">
+      <span class="team-empty-icon">✍</span>
+      <p>No team members yet. Authors will appear here once they join.</p>
+    </div>
+
+    <!-- Live team grid -->
+    <div class="team-grid" *ngIf="!teamLoading && !teamError && team.length > 0">
+      <div class="team-card fade-in"
+           *ngFor="let member of team; let i = index"
+           [style.animation-delay]="(i * 0.1) + 's'">
+
+        <!-- Avatar: real image OR initials fallback -->
+        <div class="team-avatar-wrap">
+          <img *ngIf="getAvatarUrl(member.avatar)"
+               [src]="getAvatarUrl(member.avatar)"
+               [alt]="member.username"
+               class="team-avatar-img"
+               (error)="member.avatar = ''">
+          <div *ngIf="!getAvatarUrl(member.avatar)"
+               class="team-avatar" [class]="'av-' + member.role">
+            {{ getInitials(member.username) }}
+          </div>
+
+          <!-- Role badge overlaid on avatar -->
+          <span class="team-role-badge" [class]="getRoleClass(member.role)">
+            {{ member.role === 'admin' ? '👑' : '✍' }}
+          </span>
+        </div>
+
+        <!-- Info -->
+        <h4 class="team-name">{{ member.username }}</h4>
+        <span class="team-role" [class]="getRoleClass(member.role)">
+          {{ getRoleLabel(member.role) }}
+        </span>
+        <p class="team-bio">{{ getMemberBio(member) }}</p>
+
+        <!-- Stats row -->
+        <div class="team-stats">
+          <div class="team-stat">
+            <span class="team-stat-num">{{ getPostCount(member._id) }}</span>
+            <span class="team-stat-label">{{ getPostCount(member._id) === 1 ? 'Article' : 'Articles' }}</span>
+          </div>
+          <div class="team-stat-divider"></div>
+          <div class="team-stat">
+            <span class="team-stat-num">{{ getMemberSince(member.createdAt) }}</span>
+            <span class="team-stat-label">Member since</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="about-cta">
+  <div class="container">
+    <div class="cta-card">
+      <div class="cta-glow"></div>
+      <h2 class="cta-title">Ready to start reading?</h2>
+      <p class="cta-text">Explore hundreds of articles across tech, lifestyle, design, and more.</p>
+      <div class="cta-buttons">
+        <a routerLink="/" class="btn btn-primary btn-lg">Browse Articles</a>
+        <a routerLink="/contact" class="btn btn-outline btn-lg">Write for Us</a>
+      </div>
+    </div>
+  </div>
+</section>

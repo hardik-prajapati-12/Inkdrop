@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCEABB" />
+      <stop offset="50%" stop-color="#D4A853" />
+      <stop offset="100%" stop-color="#C5933C" />
+    </linearGradient>
+  </defs>
+  <!-- Rotate 90 degrees around center (50, 50) to make it horizontal pointing right -->
+  <g transform="rotate(90, 50, 50)">
+    <path d="M50 5 
+             C46 15 36 32 34 38 
+             C31 46 34 60 38 65 
+             L34 95 
+             H66 
+             L62 65 
+             C66 60 69 46 66 38 
+             C64 32 54 15 50 5 
+             Z 
+             M50 50 
+             A5 5 0 1 0 50 60 
+             A5 5 0 1 0 50 50 
+             Z
+             M49.5 5 
+             H50.5 
+             V50 
+             H49.5 
+             Z" 
+          fill="url(#gold-grad)" 
+          fill-rule="evenodd"/>
+  </g>
+</svg>

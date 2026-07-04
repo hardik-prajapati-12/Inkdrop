@@ -1,0 +1,135 @@
+<!-- src/app/components/navbar/navbar.component.html -->
+<nav class="navbar" [class.scrolled]="isScrolled">
+  <div class="container navbar-inner">
+
+    <!-- Brand -->
+    <a routerLink="/" class="brand" (click)="closeMenu(); closeDropdown()">
+      <span class="brand-icon">✒</span>
+      <span class="brand-name">InkDrop</span>
+    </a>
+
+    <!-- Desktop Links -->
+    <ul class="nav-links">
+      <li><a routerLink="/"        routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a></li>
+      <li><a routerLink="/about"   routerLinkActive="active">About</a></li>
+      <li><a routerLink="/contact" routerLinkActive="active">Contact</a></li>
+      <li *ngIf="auth.isAuthorOrAdmin">
+        <a routerLink="/admin" routerLinkActive="active" class="admin-link">
+          <i class="bi bi-gear-fill" style="margin-right:6px"></i>{{ auth.isAdmin ? 'Dashboard' : 'My Dashboard' }}
+        </a>
+      </li>
+    </ul>
+
+    <!-- Auth Buttons -->
+    <div class="nav-actions">
+      <ng-container *ngIf="!auth.isLoggedIn; else userMenu">
+        <a routerLink="/login" class="btn btn-outline btn-sm">Sign In</a>
+      </ng-container>
+
+      <ng-template #userMenu>
+        <div class="user-menu">
+          <button
+            class="user-avatar-btn"
+            [class.active]="dropdownOpen"
+            (click)="toggleDropdown($event)"
+            aria-haspopup="true"
+            [attr.aria-expanded]="dropdownOpen">
+
+            <!-- Avatar: real photo if available, else initials -->
+            <ng-container *ngIf="user?.avatar; else navbarInitials">
+              <img [src]="user?.avatar?.startsWith('http') 
+    ? user?.avatar 
+    : 'http://localhost:5000' + user?.avatar"
+                   class="avatar-circle nav-avatar-img"
+                   [alt]="user?.username"
+                   onerror="this.style.display='none'">
+            </ng-container>
+            <ng-template #navbarInitials>
+              <span class="avatar-circle">{{ user?.username?.charAt(0)?.toUpperCase() }}</span>
+            </ng-template>
+
+            <span class="username-text">{{ user?.username }}</span>
+            <span class="dropdown-arrow" [class.rotated]="dropdownOpen">▾</span>
+          </button>
+
+          <div class="dropdown" [class.show]="dropdownOpen">
+            <div class="dropdown-info">
+              <span class="dropdown-name">{{ user?.username }}</span>
+              <span class="dropdown-role" [class]="'role-' + user?.role">
+                <span *ngIf="user?.role === 'admin'"><i class="bi bi-crown-fill" style="margin-right:4px"></i>Admin</span>
+                <span *ngIf="user?.role === 'author'"><i class="bi bi-pencil-square" style="margin-right:4px"></i>Author</span>
+                <span *ngIf="user?.role === 'user'"><i class="bi bi-person-fill" style="margin-right:4px"></i>User</span>
+              </span>
+            </div>
+            <hr class="dropdown-divider">
+            <a routerLink="/profile" class="dropdown-item" (click)="closeDropdown()">
+              <i class="bi bi-person-circle" style="margin-right:6px"></i>My Profile
+            </a>
+            <a routerLink="/admin" *ngIf="auth.isAuthorOrAdmin"
+               class="dropdown-item" (click)="closeDropdown()">
+              <i class="bi bi-gear" style="margin-right:6px"></i>{{ auth.isAdmin ? 'Dashboard' : 'My Dashboard' }}
+            </a>
+            <hr class="dropdown-divider">
+            <button (click)="logout()" class="dropdown-item danger">
+              <i class="bi bi-box-arrow-right" style="margin-right:6px"></i>Sign Out
+            </button>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Mobile Hamburger -->
+    <button class="hamburger" (click)="toggleMenu()" [class.open]="menuOpen" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.open]="menuOpen">
+    <ul>
+      <li><a routerLink="/"        (click)="closeMenu()">Home</a></li>
+      <li><a routerLink="/about"   (click)="closeMenu()">About</a></li>
+      <li><a routerLink="/contact" (click)="closeMenu()">Contact</a></li>
+      <li *ngIf="auth.isAuthorOrAdmin">
+        <a routerLink="/admin" (click)="closeMenu()">
+          <i class="bi bi-gear-fill" style="margin-right:6px"></i>{{ auth.isAdmin ? 'Dashboard' : 'My Dashboard' }}
+        </a>
+      </li>
+    </ul>
+    <div class="mobile-auth">
+      <ng-container *ngIf="!auth.isLoggedIn; else mobileUser">
+        <a routerLink="/login" class="btn btn-primary w-full" (click)="closeMenu()">Sign In</a>
+      </ng-container>
+      <ng-template #mobileUser>
+        <div class="mobile-user-info">
+          <!-- Mobile avatar -->
+          <ng-container *ngIf="user?.avatar; else mobileInitials">
+            <img [src]="user?.avatar?.startsWith('http') 
+    ? user?.avatar 
+    : 'http://localhost:5000' + user?.avatar"
+                 class="avatar-circle nav-avatar-img"
+                 [alt]="user?.username"
+                 onerror="this.style.display='none'">
+          </ng-container>
+          <ng-template #mobileInitials>
+            <span class="avatar-circle">{{ user?.username?.charAt(0)?.toUpperCase() }}</span>
+          </ng-template>
+          <div>
+            <span style="display:block;font-weight:600">{{ user?.username }}</span>
+            <span style="font-size:.7rem;opacity:.6;text-transform:uppercase;letter-spacing:.8px">{{ user?.role }}</span>
+          </div>
+        </div>
+        <a routerLink="/profile" class="btn btn-ghost w-full" (click)="closeMenu()"
+           style="margin-bottom:8px;justify-content:center;display:flex;">
+          <i class="bi bi-person-circle" style="margin-right:6px"></i>My Profile
+        </a>
+        <button (click)="logout()" class="btn btn-outline w-full">
+          <i class="bi bi-box-arrow-right" style="margin-right:6px"></i>Sign Out
+        </button>
+      </ng-template>
+    </div>
+  </div>
+</nav>
+
+<!-- Spacer -->
+<div style="height: 72px;"></div>

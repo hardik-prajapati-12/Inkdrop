@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InkDrop — 3D Website Model</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0a;
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      color: #F5F0E8;
+      cursor: grab;
+    }
+
+    body:active { cursor: grabbing; }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    canvas { display: block; }
+
+    /* ── Overlay UI ─────────────────────────────── */
+    .overlay-title {
+      position: fixed;
+      top: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .overlay-title .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #F5F0E8;
+      letter-spacing: -0.5px;
+    }
+
+    .overlay-title .brand-dot {
+      color: #D4A853;
+    }
+
+    .overlay-title .subtitle {
+      font-size: 0.78rem;
+      color: #6B6055;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Controls hint */
+    .controls-hint {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 24px;
+      background: rgba(28, 28, 28, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 168, 83, 0.12);
+      border-radius: 100px;
+      font-size: 0.75rem;
+      color: #A89880;
+      pointer-events: none;
+    }
+
+    .controls-hint span { white-space: nowrap; }
+    .controls-hint .sep { width: 1px; height: 14px; background: rgba(212,168,83,0.2); }
+
+    /* Info panel */
+    .info-panel {
+      position: fixed;
+      top: 50%;
+      right: 32px;
+      transform: translateY(-50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .info-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(212,168,83,0.4);
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      pointer-events: auto;
+    }
+
+    .info-dot:hover,
+    .info-dot.active {
+      background: #D4A853;
+      border-color: #D4A853;
+      box-shadow: 0 0 12px rgba(212,168,83,0.4);
+    }
+
+    /* Page label tooltip */
+    .page-label {
+      position: fixed;
+      z-index: 20;
+      padding: 8px 16px;
+      background: rgba(28, 28, 28, 0.9);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(212,168,83,0.25);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: #D4A853;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .page-label.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Loading */
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity 0.8s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loading-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+    }
+
+    .loading-bar-bg {
+      width: 200px;
+      height: 3px;
+      background: rgba(212,168,83,0.15);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .loading-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #D4A853, #E8C47A);
+      border-radius: 8px;
+      transition: width 0.3s ease;
+    }
+
+    .loading-text {
+      font-size: 0.72rem;
+      color: #6B6055;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Exploded view toggle */
+    .view-toggle {
+      position: fixed;
+      top: 28px;
+      right: 32px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+
+    .view-btn {
+      padding: 8px 18px;
+      border-radius: 100px;
+      border: 1.5px solid rgba(212,168,83,0.2);
+      background: rgba(28,28,28,0.5);
+      backdrop-filter: blur(12px);
+      color: #A89880;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.3px;
+    }
+
+    .view-btn:hover {
+      border-color: rgba(212,168,83,0.5);
+      color: #D4A853;
+    }
+
+    .view-btn.active {
+      background: rgba(212,168,83,0.15);
+      border-color: #D4A853;
+      color: #D4A853;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div class="loading-screen" id="loading">
+    <div class="loading-brand">✒ InkDrop<span style="color:#D4A853">.</span></div>
+    <div class="loading-bar-bg">
+      <div class="loading-bar" id="loadingBar"></div>
+    </div>
+    <div class="loading-text">Building 3D Model</div>
+  </div>
+
+  <!-- Overlay UI -->
+  <div class="overlay-title">
+    <div class="brand">✒ InkDrop<span class="brand-dot">.</span></div>
+    <div class="subtitle">3D Website Architecture</div>
+  </div>
+
+  <div class="view-toggle">
+    <button class="view-btn active" onclick="setView('stacked')" id="btn-stacked">Stacked</button>
+    <button class="view-btn" onclick="setView('exploded')" id="btn-exploded">Exploded</button>
+    <button class="view-btn" onclick="setView('orbit')" id="btn-orbit">Carousel</button>
+  </div>
+
+  <div class="info-panel" id="infoPanel"></div>
+
+  <div class="controls-hint">
+    <span>🖱 Drag to Rotate</span>
+    <div class="sep"></div>
+    <span>Scroll to Zoom</span>
+    <div class="sep"></div>
+    <span>Right-click to Pan</span>
+  </div>
+
+  <div class="page-label" id="pageLabel"></div>
+
+  <div id="canvas-container"></div>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    // ── Config ──────────────────────────────────────
+    const COLORS = {
+      bg:          0x0a0a0a,
+      accent:      0xD4A853,
+      accentLight: 0xE8C47A,
+      accentDark:  0xB8882F,
+      cardBg:      0x1C1C1C,
+      cardBorder:  0x2a2520,
+      textWhite:   0xF5F0E8,
+      textMuted:   0x6B6055,
+      secondary:   0x161616,
+      gridLine:    0x1a1815,
+    };
+
+    const pages = [
+      { name: 'Navbar',        color: 0x1C1C1C, h: 0.35, shortName: 'NAV' },
+      { name: 'Hero Section',  color: 0x161616, h: 3.2,  shortName: 'HERO' },
+      { name: 'Featured Posts', color: 0x1C1C1C, h: 2.8,  shortName: 'FEATURED' },
+      { name: 'Categories',    color: 0x181818, h: 0.8,  shortName: 'CATS' },
+      { name: 'Posts Grid',    color: 0x1C1C1C, h: 4.0,  shortName: 'POSTS' },
+      { name: 'Pagination',    color: 0x161616, h: 0.6,  shortName: 'PAGES' },
+      { name: 'Footer',        color: 0x141414, h: 2.2,  shortName: 'FOOTER' },
+    ];
+
+    // ── Scene Setup ─────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(COLORS.bg);
+    scene.fog = new THREE.FogExp2(COLORS.bg, 0.018);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(8, 6, 12);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    // ── Controls ────────────────────────────────────
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.rotateSpeed = 0.5;
+    controls.zoomSpeed = 0.8;
+    controls.minDistance = 5;
+    controls.maxDistance = 30;
+    controls.target.set(0, 3, 0);
+    controls.maxPolarAngle = Math.PI * 0.85;
+
+    // ── Lights ──────────────────────────────────────
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.25);
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.DirectionalLight(0xffeedd, 0.8);
+    mainLight.position.set(8, 14, 8);
+    mainLight.castShadow = true;
+    mainLight.shadow.mapSize.width = 2048;
+    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.camera.near = 0.5;
+    mainLight.shadow.camera.far = 40;
+    mainLight.shadow.camera.left = -15;
+    mainLight.shadow.camera.right = 15;
+    mainLight.shadow.camera.top = 15;
+    mainLight.shadow.camera.bottom = -5;
+    scene.add(mainLight);
+
+    const accentLight1 = new THREE.PointLight(0xD4A853, 0.6, 20);
+    accentLight1.position.set(-5, 8, 3);
+    scene.add(accentLight1);
+
+    const accentLight2 = new THREE.PointLight(0xD4A853, 0.3, 15);
+    accentLight2.position.set(5, 2, -3);
+    scene.add(accentLight2);
+
+    const rimLight = new THREE.PointLight(0x4a3d20, 0.4, 25);
+    rimLight.position.set(0, 12, -8);
+    scene.add(rimLight);
+
+    // ── Ground Plane with Grid ─────────────────────
+    const groundGeo = new THREE.PlaneGeometry(40, 40);
+    const groundMat = new THREE.MeshStandardMaterial({
+      color: 0x0d0d0d,
+      metalness: 0.3,
+      roughness: 0.9,
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.05;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Grid lines
+    const gridHelper = new THREE.GridHelper(30, 30, 0x1a1815, 0x121110);
+    gridHelper.position.y = 0;
+    gridHelper.material.opacity = 0.5;
+    gridHelper.material.transparent = true;
+    scene.add(gridHelper);
+
+    // ── Rounded Box Geometry Helper ─────────────────
+    function createRoundedBoxGeometry(width, height, depth, radius, segments) {
+      const shape = new THREE.Shape();
+      const w = width / 2;
+      const h = height / 2;
+      const r = Math.min(radius, w, h);
+
+      shape.moveTo(-w + r, -h);
+      shape.lineTo(w - r, -h);
+      shape.quadraticCurveTo(w, -h, w, -h + r);
+      shape.lineTo(w, h - r);
+      shape.quadraticCurveTo(w, h, w - r, h);
+      shape.lineTo(-w + r, h);
+      shape.quadraticCurveTo(-w, h, -w, h - r);
+      shape.lineTo(-w, -h + r);
+      shape.quadraticCurveTo(-w, -h, -w + r, -h);
+
+      const extrudeSettings = {
+        depth: depth,
+        bevelEnabled: false,
+        steps: 1,
+      };
+
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geometry.center();
+      return geometry;
+    }
+
+    // ── Create Page Panels ──────────────────────────
+    const panelWidth = 6;
+    const panelDepth = 0.08;
+    const gap = 0.12;
+    const panelGroup = new THREE.Group();
+    const panelMeshes = [];
+
+    let currentY = 0;
+    pages.forEach((page, idx) => {
+      const group = new THREE.Group();
+
+      // Main panel
+      const geo = createRoundedBoxGeometry(panelWidth, page.h, panelDepth, 0.08, 2);
+      const mat = new THREE.MeshStandardMaterial({
+        color: page.color,
+        metalness: 0.15,
+        roughness: 0.65,
+        transparent: true,
+        opacity: 0.92,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      group.add(mesh);
+
+      // Border glow edge (top line)
+      const edgeGeo = new THREE.PlaneGeometry(panelWidth - 0.2, 0.015);
+      const edgeMat = new THREE.MeshBasicMaterial({
+        color: COLORS.accent,
+        transparent: true,
+        opacity: 0.5,
+      });
+      const topEdge = new THREE.Mesh(edgeGeo, edgeMat);
+      topEdge.position.set(0, page.h / 2 - 0.01, panelDepth / 2 + 0.002);
+      group.add(topEdge);
+
+      // Content elements based on section type
+      addSectionContent(group, page, idx);
+
+      // Position
+      currentY += page.h / 2;
+      group.position.y = currentY;
+      currentY += page.h / 2 + gap;
+
+      group.userData = {
+        originalY: group.position.y,
+        originalX: 0,
+        originalZ: 0,
+        pageIndex: idx,
+        pageName: page.name,
+      };
+
+      panelGroup.add(group);
+      panelMeshes.push(group);
+    });
+
+    scene.add(panelGroup);
+
+    // ── Add Section Content ─────────────────────────
+    function addSectionContent(group, page, idx) {
+      const z = panelDepth / 2 + 0.005;
+
+      switch(idx) {
+        case 0: // Navbar
+          addNavbar(group, page, z);
+          break;
+        case 1: // Hero
+          addHero(group, page, z);
+          break;
+        case 2: // Featured
+          addFeatured(group, page, z);
+          break;
+        case 3: // Categories
+          addCategories(group, page, z);
+          break;
+        case 4: // Posts Grid
+          addPostsGrid(group, page, z);
+          break;
+        case 5: // Pagination
+          addPagination(group, page, z);
+          break;
+        case 6: // Footer
+          addFooter(group, page, z);
+          break;
+      }
+    }
+
+    function createTextPlane(text, size, color, maxWidth) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 512;
+      canvas.height = 64;
+      ctx.fillStyle = 'transparent';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `600 ${Math.round(size * 420)}px "DM Sans", sans-serif`;
+      ctx.fillStyle = color;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, 10, 32);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+      const aspect = canvas.width / canvas.height;
+      const w = maxWidth || 2;
+      const plane = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, w / aspect),
+        new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false })
+      );
+      return plane;
+    }
+
+    function addNavbar(group, page, z) {
+      // Logo placeholder
+      const logoGeo = new THREE.PlaneGeometry(0.6, 0.15);
+      const logoMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.85 });
+      const logo = new THREE.Mesh(logoGeo, logoMat);
+      logo.position.set(-2.3, 0, z);
+      group.add(logo);
+
+      // Nav links
+      const links = ['Home', 'About', 'Contact'];
+      links.forEach((_, i) => {
+        const linkGeo = new THREE.PlaneGeometry(0.45, 0.08);
+        const linkMat = new THREE.MeshBasicMaterial({
+          color: i === 0 ? COLORS.accent : COLORS.textMuted,
+          transparent: true,
+          opacity: 0.7,
+        });
+        const link = new THREE.Mesh(linkGeo, linkMat);
+        link.position.set(-0.5 + i * 0.7, 0, z);
+        group.add(link);
+      });
+
+      // Sign in button
+      const btnGeo = new THREE.PlaneGeometry(0.55, 0.13);
+      const btnMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.3 });
+      const btn = new THREE.Mesh(btnGeo, btnMat);
+      btn.position.set(2.3, 0, z);
+      group.add(btn);
+
+      // Border outline on button
+      const btnBorderGeo = new THREE.EdgesGeometry(new THREE.PlaneGeometry(0.55, 0.13));
+      const btnBorderMat = new THREE.LineBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.6 });
+      const btnBorder = new THREE.LineSegments(btnBorderGeo, btnBorderMat);
+      btnBorder.position.set(2.3, 0, z + 0.001);
+      group.add(btnBorder);
+    }
+
+    function addHero(group, page, z) {
+      // Badge
+      const badgeGeo = new THREE.PlaneGeometry(1.2, 0.12);
+      const badgeMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.2 });
+      const badge = new THREE.Mesh(badgeGeo, badgeMat);
+      badge.position.set(-1.2, 1.1, z);
+      group.add(badge);
+
+      // Title lines
+      const titleLine1 = new THREE.PlaneGeometry(3.5, 0.22);
+      const titleMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.85 });
+      const t1 = new THREE.Mesh(titleLine1, titleMat);
+      t1.position.set(-0.75, 0.6, z);
+      group.add(t1);
+
+      const titleLine2 = new THREE.PlaneGeometry(2.5, 0.22);
+      const titleMat2 = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.7 });
+      const t2 = new THREE.Mesh(titleLine2, titleMat2);
+      t2.position.set(-1.25, 0.3, z);
+      group.add(t2);
+
+      // Subtitle lines
+      for (let i = 0; i < 2; i++) {
+        const subGeo = new THREE.PlaneGeometry(3.2 - i * 0.8, 0.06);
+        const subMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.5 });
+        const sub = new THREE.Mesh(subGeo, subMat);
+        sub.position.set(-0.9, -0.05 - i * 0.14, z);
+        group.add(sub);
+      }
+
+      // CTA buttons
+      const ctaBg = new THREE.PlaneGeometry(1.1, 0.2);
+      const ctaMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.85 });
+      const cta = new THREE.Mesh(ctaBg, ctaMat);
+      cta.position.set(-1.95, -0.55, z);
+      group.add(cta);
+
+      const cta2Bg = new THREE.PlaneGeometry(0.8, 0.2);
+      const cta2Mat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.2 });
+      const cta2 = new THREE.Mesh(cta2Bg, cta2Mat);
+      cta2.position.set(-0.6, -0.55, z);
+      group.add(cta2);
+
+      // Stats
+      const statsData = ['50+', '8+', '100%'];
+      statsData.forEach((_, i) => {
+        const statGeo = new THREE.PlaneGeometry(0.4, 0.18);
+        const statMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.6 });
+        const stat = new THREE.Mesh(statGeo, statMat);
+        stat.position.set(-2.0 + i * 1.2, -1.05, z);
+        group.add(stat);
+
+        // Label below
+        const labelGeo = new THREE.PlaneGeometry(0.5, 0.05);
+        const labelMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.35 });
+        const label = new THREE.Mesh(labelGeo, labelMat);
+        label.position.set(-2.0 + i * 1.2, -1.22, z);
+        group.add(label);
+
+        // Divider
+        if (i < 2) {
+          const divGeo = new THREE.PlaneGeometry(0.01, 0.25);
+          const divMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.15 });
+          const div = new THREE.Mesh(divGeo, divMat);
+          div.position.set(-1.4 + i * 1.2, -1.1, z);
+          group.add(div);
+        }
+      });
+
+      // Scroll indicator
+      const scrollGeo = new THREE.RingGeometry(0.04, 0.06, 16);
+      const scrollMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.5 });
+      const scroll = new THREE.Mesh(scrollGeo, scrollMat);
+      scroll.position.set(0, -1.4, z);
+      group.add(scroll);
+
+      // Background glow
+      const glowGeo = new THREE.CircleGeometry(2.5, 32);
+      const glowMat = new THREE.MeshBasicMaterial({
+        color: COLORS.accent,
+        transparent: true,
+        opacity: 0.03,
+      });
+      const glow = new THREE.Mesh(glowGeo, glowMat);
+      glow.position.set(-1, 0.5, z - 0.002);
+      group.add(glow);
+    }
+
+    function addFeatured(group, page, z) {
+      // Section label
+      const labelGeo = new THREE.PlaneGeometry(0.7, 0.06);
+      const labelMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.6 });
+      const label = new THREE.Mesh(labelGeo, labelMat);
+      label.position.set(-2.15, 1.15, z);
+      group.add(label);
+
+      // Section title
+      const titleGeo = new THREE.PlaneGeometry(1.5, 0.14);
+      const titleMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.8 });
+      const title = new THREE.Mesh(titleGeo, titleMat);
+      title.position.set(-1.75, 0.95, z);
+      group.add(title);
+
+      // Main featured card
+      const mainCardGeo = createRoundedBoxGeometry(3.4, 2.0, 0.04, 0.06, 1);
+      const mainCardMat = new THREE.MeshStandardMaterial({
+        color: 0x222222,
+        metalness: 0.1,
+        roughness: 0.7,
+        transparent: true,
+        opacity: 0.9,
+      });
+      const mainCard = new THREE.Mesh(mainCardGeo, mainCardMat);
+      mainCard.position.set(-0.9, -0.15, z + 0.01);
+      group.add(mainCard);
+
+      // Image area in main card
+      const imgGeo = new THREE.PlaneGeometry(3.2, 1.1);
+      const imgMat = new THREE.MeshBasicMaterial({ color: 0x2a2520, transparent: true, opacity: 0.8 });
+      const img = new THREE.Mesh(imgGeo, imgMat);
+      img.position.set(-0.9, 0.2, z + 0.035);
+      group.add(img);
+
+      // Category badge on image
+      const catGeo = new THREE.PlaneGeometry(0.55, 0.1);
+      const catMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.4 });
+      const cat = new THREE.Mesh(catGeo, catMat);
+      cat.position.set(-2.2, 0.6, z + 0.04);
+      group.add(cat);
+
+      // Title text in card
+      const mainTitleGeo = new THREE.PlaneGeometry(2.8, 0.1);
+      const mainTitleMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.7 });
+      const mainTitle = new THREE.Mesh(mainTitleGeo, mainTitleMat);
+      mainTitle.position.set(-0.9, -0.45, z + 0.035);
+      group.add(mainTitle);
+
+      // Excerpt
+      const excGeo = new THREE.PlaneGeometry(2.5, 0.05);
+      const excMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.4 });
+      const exc = new THREE.Mesh(excGeo, excMat);
+      exc.position.set(-1.05, -0.6, z + 0.035);
+      group.add(exc);
+
+      // Side cards
+      for (let i = 0; i < 2; i++) {
+        const sideGeo = createRoundedBoxGeometry(2.0, 0.9, 0.04, 0.04, 1);
+        const sideMat = new THREE.MeshStandardMaterial({
+          color: 0x222222,
+          metalness: 0.1,
+          roughness: 0.7,
+          transparent: true,
+          opacity: 0.85,
+        });
+        const side = new THREE.Mesh(sideGeo, sideMat);
+        side.position.set(1.8, 0.4 - i * 1.05, z + 0.01);
+        group.add(side);
+
+        // Thumbnail
+        const thumbGeo = new THREE.PlaneGeometry(0.5, 0.5);
+        const thumbMat = new THREE.MeshBasicMaterial({ color: 0x2a2520, transparent: true, opacity: 0.7 });
+        const thumb = new THREE.Mesh(thumbGeo, thumbMat);
+        thumb.position.set(1.08, 0.4 - i * 1.05, z + 0.035);
+        group.add(thumb);
+
+        // Side title lines
+        const stGeo = new THREE.PlaneGeometry(1.1, 0.06);
+        const stMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.6 });
+        const st = new THREE.Mesh(stGeo, stMat);
+        st.position.set(1.95, 0.48 - i * 1.05, z + 0.035);
+        group.add(st);
+
+        const st2Geo = new THREE.PlaneGeometry(0.8, 0.04);
+        const st2Mat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.35 });
+        const st2 = new THREE.Mesh(st2Geo, st2Mat);
+        st2.position.set(1.8, 0.35 - i * 1.05, z + 0.035);
+        group.add(st2);
+      }
+    }
+
+    function addCategories(group, page, z) {
+      // Section label
+      const labelGeo = new THREE.PlaneGeometry(0.6, 0.06);
+      const labelMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.6 });
+      const label = new THREE.Mesh(labelGeo, labelMat);
+      label.position.set(-2.2, 0.2, z);
+      group.add(label);
+
+      // Category chips
+      const chipWidths = [0.6, 0.8, 0.7, 0.65, 0.75, 0.55, 0.8];
+      let xPos = -2.2;
+      chipWidths.forEach((w, i) => {
+        const chipGeo = createRoundedBoxGeometry(w, 0.18, 0.02, 0.09, 1);
+        const chipMat = new THREE.MeshStandardMaterial({
+          color: i === 0 ? COLORS.accent : 0x222222,
+          metalness: 0.05,
+          roughness: 0.8,
+          transparent: true,
+          opacity: i === 0 ? 0.9 : 0.7,
+        });
+        const chip = new THREE.Mesh(chipGeo, chipMat);
+        chip.position.set(xPos + w / 2, -0.1, z);
+        group.add(chip);
+
+        // Chip text line
+        const textGeo = new THREE.PlaneGeometry(w * 0.65, 0.04);
+        const textMat = new THREE.MeshBasicMaterial({
+          color: i === 0 ? 0x0F0F0F : COLORS.textMuted,
+          transparent: true,
+          opacity: 0.6,
+        });
+        const text = new THREE.Mesh(textGeo, textMat);
+        text.position.set(xPos + w / 2, -0.1, z + 0.015);
+        group.add(text);
+
+        xPos += w + 0.12;
+      });
+    }
+
+    function addPostsGrid(group, page, z) {
+      // Search bar
+      const searchGeo = createRoundedBoxGeometry(5.4, 0.22, 0.02, 0.11, 1);
+      const searchMat = new THREE.MeshStandardMaterial({
+        color: COLORS.secondary,
+        metalness: 0.1,
+        roughness: 0.8,
+        transparent: true,
+        opacity: 0.8,
+      });
+      const search = new THREE.Mesh(searchGeo, searchMat);
+      search.position.set(0, 1.7, z);
+      group.add(search);
+
+      // Search icon
+      const iconGeo = new THREE.CircleGeometry(0.05, 12);
+      const iconMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.5 });
+      const icon = new THREE.Mesh(iconGeo, iconMat);
+      icon.position.set(-2.35, 1.7, z + 0.015);
+      group.add(icon);
+
+      // Post cards - 3x2 grid
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < 3; col++) {
+          const cardGeo = createRoundedBoxGeometry(1.7, 1.5, 0.03, 0.06, 1);
+          const cardMat = new THREE.MeshStandardMaterial({
+            color: 0x1E1E1E,
+            metalness: 0.1,
+            roughness: 0.65,
+            transparent: true,
+            opacity: 0.9,
+          });
+          const card = new THREE.Mesh(cardGeo, cardMat);
+          const cx = -1.85 + col * 1.85;
+          const cy = 0.85 - row * 1.65;
+          card.position.set(cx, cy, z + 0.01);
+          group.add(card);
+
+          // Image area
+          const cImgGeo = new THREE.PlaneGeometry(1.5, 0.65);
+          const hue = (col * 30 + row * 60) % 360;
+          const cImgMat = new THREE.MeshBasicMaterial({
+            color: new THREE.Color().setHSL(hue / 360, 0.15, 0.14),
+            transparent: true,
+            opacity: 0.8,
+          });
+          const cImg = new THREE.Mesh(cImgGeo, cImgMat);
+          cImg.position.set(cx, cy + 0.35, z + 0.03);
+          group.add(cImg);
+
+          // "Read Article" overlay (hidden, visible concept)
+          const overlayGeo = new THREE.PlaneGeometry(0.65, 0.12);
+          const overlayMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.0 });
+          const overlay = new THREE.Mesh(overlayGeo, overlayMat);
+          overlay.position.set(cx, cy + 0.35, z + 0.035);
+          group.add(overlay);
+
+          // Category badge
+          const cbGeo = new THREE.PlaneGeometry(0.45, 0.08);
+          const cbMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.3 });
+          const cb = new THREE.Mesh(cbGeo, cbMat);
+          cb.position.set(cx - 0.4, cy + 0.0, z + 0.03);
+          group.add(cb);
+
+          // Title
+          const ctGeo = new THREE.PlaneGeometry(1.3, 0.07);
+          const ctMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.7 });
+          const ct = new THREE.Mesh(ctGeo, ctMat);
+          ct.position.set(cx, cy - 0.12, z + 0.03);
+          group.add(ct);
+
+          // Excerpt lines
+          const ceGeo = new THREE.PlaneGeometry(1.2, 0.04);
+          const ceMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.35 });
+          const ce = new THREE.Mesh(ceGeo, ceMat);
+          ce.position.set(cx, cy - 0.22, z + 0.03);
+          group.add(ce);
+
+          // Tags
+          for (let t = 0; t < 2; t++) {
+            const tagGeo = new THREE.PlaneGeometry(0.3, 0.06);
+            const tagMat = new THREE.MeshBasicMaterial({ color: COLORS.secondary, transparent: true, opacity: 0.6 });
+            const tag = new THREE.Mesh(tagGeo, tagMat);
+            tag.position.set(cx - 0.4 + t * 0.4, cy - 0.35, z + 0.03);
+            group.add(tag);
+          }
+
+          // Footer divider
+          const fdGeo = new THREE.PlaneGeometry(1.5, 0.005);
+          const fdMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.1 });
+          const fd = new THREE.Mesh(fdGeo, fdMat);
+          fd.position.set(cx, cy - 0.45, z + 0.03);
+          group.add(fd);
+
+          // Author avatar
+          const avGeo = new THREE.CircleGeometry(0.06, 16);
+          const avMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.6 });
+          const av = new THREE.Mesh(avGeo, avMat);
+          av.position.set(cx - 0.55, cy - 0.58, z + 0.03);
+          group.add(av);
+
+          // Author name line
+          const anGeo = new THREE.PlaneGeometry(0.5, 0.04);
+          const anMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.5 });
+          const an = new THREE.Mesh(anGeo, anMat);
+          an.position.set(cx - 0.2, cy - 0.56, z + 0.03);
+          group.add(an);
+
+          // Stats
+          const stGeo = new THREE.PlaneGeometry(0.35, 0.04);
+          const stMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.3 });
+          const st = new THREE.Mesh(stGeo, stMat);
+          st.position.set(cx + 0.5, cy - 0.56, z + 0.03);
+          group.add(st);
+        }
+      }
+    }
+
+    function addPagination(group, page, z) {
+      // Pagination buttons
+      const pageButtons = ['←', '1', '2', '3', '...', '8', '→'];
+      pageButtons.forEach((_, i) => {
+        const pbGeo = createRoundedBoxGeometry(0.22, 0.22, 0.015, 0.04, 1);
+        const isActive = i === 1;
+        const pbMat = new THREE.MeshStandardMaterial({
+          color: isActive ? COLORS.accent : 0x222222,
+          metalness: 0.05,
+          roughness: 0.8,
+          transparent: true,
+          opacity: isActive ? 0.9 : 0.6,
+        });
+        const pb = new THREE.Mesh(pbGeo, pbMat);
+        pb.position.set(-1.0 + i * 0.32, 0, z);
+        group.add(pb);
+      });
+    }
+
+    function addFooter(group, page, z) {
+      // Top divider glow
+      const divGeo = new THREE.PlaneGeometry(5.4, 0.008);
+      const divMat = new THREE.MeshBasicMaterial({
+        color: COLORS.accent,
+        transparent: true,
+        opacity: 0.2,
+      });
+      const div = new THREE.Mesh(divGeo, divMat);
+      div.position.set(0, 0.95, z);
+      group.add(div);
+
+      // Brand
+      const brandGeo = new THREE.PlaneGeometry(0.8, 0.15);
+      const brandMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.7 });
+      const brand = new THREE.Mesh(brandGeo, brandMat);
+      brand.position.set(-1.9, 0.65, z);
+      group.add(brand);
+
+      // Tagline lines
+      for (let i = 0; i < 2; i++) {
+        const tlGeo = new THREE.PlaneGeometry(1.6 - i * 0.4, 0.04);
+        const tlMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.35 });
+        const tl = new THREE.Mesh(tlGeo, tlMat);
+        tl.position.set(-1.5 + i * 0.2, 0.42 - i * 0.1, z);
+        group.add(tl);
+      }
+
+      // Social buttons
+      for (let i = 0; i < 4; i++) {
+        const sGeo = new THREE.CircleGeometry(0.08, 16);
+        const sMat = new THREE.MeshBasicMaterial({ color: 0x2a2520, transparent: true, opacity: 0.6 });
+        const s = new THREE.Mesh(sGeo, sMat);
+        s.position.set(-2.2 + i * 0.25, 0.12, z);
+        group.add(s);
+      }
+
+      // Footer columns
+      const colTitles = ['Explore', 'Topics', 'Legal'];
+      colTitles.forEach((_, ci) => {
+        // Column title
+        const ctGeo = new THREE.PlaneGeometry(0.5, 0.06);
+        const ctMat = new THREE.MeshBasicMaterial({ color: COLORS.textWhite, transparent: true, opacity: 0.6 });
+        const ct = new THREE.Mesh(ctGeo, ctMat);
+        ct.position.set(-0.2 + ci * 1.6, 0.65, z);
+        group.add(ct);
+
+        // Links
+        const linksCount = ci === 0 ? 5 : ci === 1 ? 5 : 4;
+        for (let li = 0; li < linksCount; li++) {
+          const lGeo = new THREE.PlaneGeometry(0.6 + Math.random() * 0.3, 0.035);
+          const lMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.3 });
+          const l = new THREE.Mesh(lGeo, lMat);
+          l.position.set(-0.2 + ci * 1.6, 0.45 - li * 0.12, z);
+          group.add(l);
+        }
+      });
+
+      // Bottom bar
+      const bottomGeo = new THREE.PlaneGeometry(5.4, 0.005);
+      const bottomMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.1 });
+      const bottom = new THREE.Mesh(bottomGeo, bottomMat);
+      bottom.position.set(0, -0.55, z);
+      group.add(bottom);
+
+      // Copyright
+      const crGeo = new THREE.PlaneGeometry(1.8, 0.04);
+      const crMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.25 });
+      const cr = new THREE.Mesh(crGeo, crMat);
+      cr.position.set(-0.8, -0.72, z);
+      group.add(cr);
+
+      // Made with
+      const mwGeo = new THREE.PlaneGeometry(1.5, 0.04);
+      const mwMat = new THREE.MeshBasicMaterial({ color: COLORS.textMuted, transparent: true, opacity: 0.25 });
+      const mw = new THREE.Mesh(mwGeo, mwMat);
+      mw.position.set(1.2, -0.72, z);
+      group.add(mw);
+
+      // Glow
+      const fGlowGeo = new THREE.CircleGeometry(2, 32);
+      const fGlowMat = new THREE.MeshBasicMaterial({ color: COLORS.accent, transparent: true, opacity: 0.015 });
+      const fGlow = new THREE.Mesh(fGlowGeo, fGlowMat);
+      fGlow.position.set(0, 0.3, z - 0.002);
+      group.add(fGlow);
+    }
+
+    // ── Connection Lines ────────────────────────────
+    const lineMaterial = new THREE.LineBasicMaterial({
+      color: COLORS.accent,
+      transparent: true,
+      opacity: 0.08,
+    });
+
+    const connectionLines = [];
+    for (let i = 0; i < panelMeshes.length - 1; i++) {
+      const points = [
+        new THREE.Vector3(-panelWidth / 2 - 0.3, panelMeshes[i].userData.originalY, 0),
+        new THREE.Vector3(-panelWidth / 2 - 0.6, (panelMeshes[i].userData.originalY + panelMeshes[i + 1].userData.originalY) / 2, 0),
+        new THREE.Vector3(-panelWidth / 2 - 0.3, panelMeshes[i + 1].userData.originalY, 0),
+      ];
+      const curveGeo = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(curveGeo, lineMaterial);
+      panelGroup.add(line);
+      connectionLines.push(line);
+    }
+
+    // ── Floating Particles ──────────────────────────
+    const particleCount = 80;
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleSizes = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+      particlePositions[i * 3] = (Math.random() - 0.5) * 20;
+      particlePositions[i * 3 + 1] = Math.random() * 16;
+      particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 12;
+      particleSizes[i] = Math.random() * 0.03 + 0.01;
+    }
+
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+    const particleMat = new THREE.PointsMaterial({
+      color: COLORS.accent,
+      size: 0.04,
+      transparent: true,
+      opacity: 0.4,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const particles = new THREE.Points(particleGeo, particleMat);
+    scene.add(particles);
+
+    // ── Section Labels (3D text sprites) ────────────
+    pages.forEach((page, idx) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 256;
+      canvas.height = 48;
+      ctx.font = '600 18px "DM Sans", sans-serif';
+      ctx.fillStyle = '#D4A853';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(page.shortName, 250, 24);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+
+      const spriteMat = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.5,
+        depthWrite: false,
+      });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(1.5, 0.3, 1);
+      sprite.position.set(panelWidth / 2 + 1.2, panelMeshes[idx].userData.originalY, 0);
+      panelGroup.add(sprite);
+    });
+
+    // ── Views ───────────────────────────────────────
+    let currentView = 'stacked';
+    let targetPositions = panelMeshes.map(p => ({
+      x: 0, y: p.userData.originalY, z: 0, rotY: 0
+    }));
+
+    function setView(view) {
+      currentView = view;
+
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`btn-${view}`).classList.add('active');
+
+      switch(view) {
+        case 'stacked':
+          panelMeshes.forEach((p, i) => {
+            targetPositions[i] = {
+              x: 0,
+              y: p.userData.originalY,
+              z: 0,
+              rotY: 0,
+            };
+          });
+          break;
+
+        case 'exploded':
+          panelMeshes.forEach((p, i) => {
+            targetPositions[i] = {
+              x: (i % 2 === 0 ? -1 : 1) * 0.8,
+              y: p.userData.originalY * 1.3,
+              z: (i - 3) * 0.6,
+              rotY: (i % 2 === 0 ? -1 : 1) * 0.08,
+            };
+          });
+          break;
+
+        case 'orbit':
+          const radius = 5;
+          panelMeshes.forEach((p, i) => {
+            const angle = (i / panelMeshes.length) * Math.PI * 2;
+            targetPositions[i] = {
+              x: Math.sin(angle) * radius,
+              y: 5 + Math.cos(angle * 0.5) * 1.5,
+              z: Math.cos(angle) * radius,
+              rotY: -angle + Math.PI,
+            };
+          });
+          break;
+      }
+    }
+
+    // ── Info Panel Dots ─────────────────────────────
+    const infoPanel = document.getElementById('infoPanel');
+    const pageLabel = document.getElementById('pageLabel');
+
+    pages.forEach((page, idx) => {
+      const dot = document.createElement('div');
+      dot.className = 'info-dot';
+      dot.title = page.name;
+      dot.addEventListener('mouseenter', () => {
+        pageLabel.textContent = page.name;
+        pageLabel.style.top = `${dot.getBoundingClientRect().top}px`;
+        pageLabel.style.right = '60px';
+        pageLabel.classList.add('visible');
+
+        // Highlight panel
+        panelMeshes[idx].children[0].material.emissive = new THREE.Color(COLORS.accent);
+        panelMeshes[idx].children[0].material.emissiveIntensity = 0.15;
+      });
+      dot.addEventListener('mouseleave', () => {
+        pageLabel.classList.remove('visible');
+        panelMeshes[idx].children[0].material.emissiveIntensity = 0;
+      });
+      dot.addEventListener('click', () => {
+        // Animate camera to focus on panel
+        const target = panelMeshes[idx].position.clone();
+        target.x += panelGroup.position.x;
+        target.y += panelGroup.position.y;
+        target.z += panelGroup.position.z;
+        controls.target.copy(target);
+      });
+      infoPanel.appendChild(dot);
+    });
+
+    // ── Raycaster for hover ─────────────────────────
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let hoveredPanel = -1;
+
+    renderer.domElement.addEventListener('mousemove', (e) => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    });
+
+    // ── Animation Loop ──────────────────────────────
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+      const delta = clock.getDelta();
+
+      // Smooth panel transitions
+      panelMeshes.forEach((p, i) => {
+        const target = targetPositions[i];
+        p.position.x += (target.x - p.position.x) * 0.04;
+        p.position.y += (target.y - p.position.y) * 0.04;
+        p.position.z += (target.z - p.position.z) * 0.04;
+        p.rotation.y += (target.rotY - p.rotation.y) * 0.04;
+
+        // Subtle floating
+        if (currentView === 'stacked') {
+          p.position.y += Math.sin(t * 0.8 + i * 0.5) * 0.003;
+        }
+      });
+
+      // Animate particles
+      const positions = particles.geometry.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3 + 1] += Math.sin(t * 0.3 + i) * 0.002;
+        positions[i * 3] += Math.cos(t * 0.2 + i * 0.5) * 0.001;
+      }
+      particles.geometry.attributes.position.needsUpdate = true;
+
+      // Animate accent lights
+      accentLight1.position.x = -5 + Math.sin(t * 0.3) * 2;
+      accentLight1.position.y = 8 + Math.cos(t * 0.4) * 1;
+      accentLight2.position.z = -3 + Math.sin(t * 0.5) * 2;
+
+      // Raycasting for hover effects
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(panelMeshes.map(p => p.children[0]));
+
+      // Reset all panels
+      panelMeshes.forEach((p, i) => {
+        if (i !== hoveredPanel) {
+          p.children[0].material.emissiveIntensity *= 0.92;
+        }
+        document.querySelectorAll('.info-dot')[i]?.classList.remove('active');
+      });
+
+      if (intersects.length > 0) {
+        const panel = intersects[0].object.parent;
+        const idx = panel.userData.pageIndex;
+        if (idx !== undefined) {
+          hoveredPanel = idx;
+          panel.children[0].material.emissive = new THREE.Color(COLORS.accent);
+          panel.children[0].material.emissiveIntensity = 0.12;
+          document.querySelectorAll('.info-dot')[idx]?.classList.add('active');
+        }
+      } else {
+        hoveredPanel = -1;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // ── Loading Sequence ────────────────────────────
+    let loadProgress = 0;
+    const loadingBar = document.getElementById('loadingBar');
+    const loadingScreen = document.getElementById('loading');
+
+    function simulateLoading() {
+      loadProgress += Math.random() * 15 + 5;
+      if (loadProgress > 100) loadProgress = 100;
+      loadingBar.style.width = loadProgress + '%';
+
+      if (loadProgress < 100) {
+        setTimeout(simulateLoading, 200 + Math.random() * 300);
+      } else {
+        setTimeout(() => {
+          loadingScreen.classList.add('hidden');
+          setTimeout(() => loadingScreen.remove(), 800);
+        }, 500);
+      }
+    }
+
+    simulateLoading();
+
+    // ── Start ───────────────────────────────────────
+    animate();
+
+    // ── Resize Handler ──────────────────────────────
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

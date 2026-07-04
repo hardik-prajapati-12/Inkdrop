@@ -1,0 +1,230 @@
+/* src/app/components/footer/footer.component.css */
+.footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.footer-glow {
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 200px;
+  background: radial-gradient(ellipse at top, rgba(212,168,83,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1fr;
+  gap: 40px;
+  padding: 60px 0 48px;
+}
+
+/* Brand */
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.footer-brand::after { content: '.'; color: var(--accent); }
+
+.footer-brand-icon { font-size: 1.5rem; color: var(--accent); }
+
+.footer-tagline {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 280px;
+  margin-bottom: 24px;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 8px;
+}
+
+.social-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.825rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.social-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* Nav Columns */
+.footer-col-title {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links a {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.footer-links a:hover { color: var(--accent); padding-left: 4px; }
+
+/* Bottom Bar */
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding: 20px 0;
+}
+
+.footer-bottom-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.footer-made-with { color: var(--text-muted); }
+
+@media (max-width: 900px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .footer-brand-col { grid-column: span 2; }
+}
+
+@media (max-width: 480px) {
+  .footer-grid { grid-template-columns: 1fr; }
+  .footer-brand-col { grid-column: span 1; }
+  .footer-bottom-inner { flex-direction: column; gap: 8px; text-align: center; }
+}
+
+/* Sign out link — looks like a normal link but is a button action */
+.footer-signout-link {
+  cursor: pointer;
+  color: var(--text-secondary) !important;
+  transition: var(--transition-fast);
+}
+.footer-signout-link:hover {
+  color: #e74c3c !important;
+  padding-left: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   3D FOOTER EFFECTS
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Footer 3D perspective ───────────────────────────── */
+.footer {
+  perspective: 1000px;
+}
+
+/* ── 3D Social Buttons ───────────────────────────────── */
+.social-btn {
+  transform: perspective(300px) translateZ(0);
+  transition: all 0.25s cubic-bezier(0.03, 0.98, 0.52, 0.99);
+}
+
+.social-btn:hover {
+  transform: perspective(300px) translateZ(8px) scale(1.12) rotate(-3deg);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 12px rgba(212,168,83,0.15);
+}
+
+.social-btn:active {
+  transform: perspective(300px) translateZ(-2px) scale(0.95);
+  transition-duration: 0.1s;
+}
+
+/* ── 3D Footer Links ─────────────────────────────────── */
+.footer-links a {
+  transform: perspective(300px) translateZ(0);
+  transition: all 0.25s cubic-bezier(0.03, 0.98, 0.52, 0.99);
+  display: inline-block;
+}
+
+.footer-links a:hover {
+  transform: perspective(300px) translateZ(4px) translateX(4px);
+}
+
+/* ── 3D Footer Brand ─────────────────────────────────── */
+.footer-brand {
+  transform: perspective(400px) translateZ(0);
+  transition: transform 0.3s cubic-bezier(0.03, 0.98, 0.52, 0.99);
+  display: inline-flex;
+}
+
+.footer-brand:hover {
+  transform: perspective(400px) translateZ(6px) scale(1.03);
+}
+
+.footer-brand-icon {
+  transition: transform 0.4s cubic-bezier(0.03, 0.98, 0.52, 0.99);
+}
+
+.footer-brand:hover .footer-brand-icon {
+  transform: rotate(-12deg) scale(1.15);
+}
+
+/* ── 3D Column Title underline effect ────────────────── */
+.footer-col-title {
+  transform: perspective(300px) translateZ(0);
+  transition: transform 0.3s cubic-bezier(0.03, 0.98, 0.52, 0.99);
+  position: relative;
+}
+
+.footer-col-title::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: var(--accent);
+  transition: width 0.4s cubic-bezier(0.03, 0.98, 0.52, 0.99);
+}
+
+.footer-nav-col:hover .footer-col-title::after {
+  width: 30px;
+}
+
+.footer-nav-col:hover .footer-col-title {
+  transform: perspective(300px) translateZ(4px);
+}
+
+/* ── Footer glow enhanced ────────────────────────────── */
+.footer-glow {
+  transition: opacity 0.6s ease;
+  opacity: 0.7;
+}
+
+.footer:hover .footer-glow {
+  opacity: 1;
+}

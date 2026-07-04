@@ -1,0 +1,89 @@
+<!-- src/app/components/footer/footer.component.html -->
+<footer class="footer">
+  <div class="footer-glow"></div>
+  <div class="container footer-grid">
+
+    <!-- ── Brand ─────────────────────────────────── -->
+    <div class="footer-brand-col">
+      <a routerLink="/" class="footer-brand">
+        <span class="footer-brand-icon">✒</span>
+        <span>InkDrop</span>
+      </a>
+      <p class="footer-tagline">
+        Thoughtful writing for curious minds. Explore ideas that challenge, inspire, and endure.
+      </p>
+      <div class="footer-socials" *ngIf="settings">
+        <a *ngIf="settings.twitter"  [href]="settings.twitter"  target="_blank" rel="noopener" class="social-btn" title="Twitter / X">𝕏</a>
+        <a *ngIf="settings.linkedin" [href]="settings.linkedin" target="_blank" rel="noopener" class="social-btn" title="LinkedIn">in</a>
+        <a *ngIf="settings.github"   [href]="settings.github"   target="_blank" rel="noopener" class="social-btn" title="GitHub">⌥</a>
+        
+        <!-- Contact/Email options -->
+        <a *ngIf="settings.email && settings.email.startsWith('/')" [routerLink]="settings.email" class="social-btn" title="Contact Us">✉</a>
+        <a *ngIf="settings.email && settings.email.includes('@') && !settings.email.startsWith('mailto:')" [href]="'mailto:' + settings.email" class="social-btn" title="Email Us">✉</a>
+        <a *ngIf="settings.email && !settings.email.startsWith('/') && !settings.email.includes('@')" [href]="settings.email" target="_blank" rel="noopener" class="social-btn" title="Contact Us">✉</a>
+      </div>
+    </div>
+
+    <!-- ── Explore ────────────────────────────────── -->
+    <div class="footer-nav-col">
+      <h4 class="footer-col-title">Explore</h4>
+      <ul class="footer-links">
+        <li><a routerLink="/">Home</a></li>
+        <li><a routerLink="/about">About Us</a></li>
+        <li><a routerLink="/contact">Contact</a></li>
+        <!-- Context-aware auth link -->
+        <li *ngIf="!auth.isLoggedIn">
+          <a routerLink="/login">Sign In</a>
+        </li>
+        <li *ngIf="auth.isLoggedIn && auth.isAuthorOrAdmin">
+          <a routerLink="/admin">Dashboard</a>
+        </li>
+        <li *ngIf="auth.isLoggedIn">
+          <a class="footer-signout-link" (click)="signOut()">Sign Out</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ── Topics (real categories from DB) ──────── -->
+    <div class="footer-nav-col">
+      <h4 class="footer-col-title">Topics</h4>
+      <ul class="footer-links">
+        <!-- Real categories loaded from DB -->
+        <ng-container *ngIf="categories.length > 0">
+          <li *ngFor="let cat of categories | slice:0:6">
+            <a [routerLink]="['/category', cat.slug]">
+              {{ cat.icon }} {{ cat.name }}
+            </a>
+          </li>
+        </ng-container>
+        <!-- Fallback static links while loading -->
+        <ng-container *ngIf="categories.length === 0">
+          <li><a [routerLink]="['/category', 'technology']">💡 Technology</a></li>
+          <li><a [routerLink]="['/category', 'design']">🎨 Design</a></li>
+          <li><a [routerLink]="['/category', 'lifestyle']">🌿 Lifestyle</a></li>
+          <li><a [routerLink]="['/category', 'business']">📈 Business</a></li>
+          <li><a [routerLink]="['/category', 'science']">🔬 Science</a></li>
+        </ng-container>
+      </ul>
+    </div>
+
+    <!-- ── Legal ──────────────────────────────────── -->
+    <div class="footer-nav-col">
+      <h4 class="footer-col-title">Legal</h4>
+      <ul class="footer-links">
+        <li><a routerLink="/legal/privacy">Privacy Policy</a></li>
+        <li><a routerLink="/legal/terms">Terms of Service</a></li>
+        <li><a routerLink="/legal/cookies">Cookie Policy</a></li>
+        <li><a routerLink="/legal/sitemap">Sitemap</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── Bottom Bar ─────────────────────────────────── -->
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <span>© {{ year }} InkDrop. All rights reserved.</span>
+      <span class="footer-made-with">Made with ❤ using MEAN Stack</span>
+    </div>
+  </div>
+</footer>
