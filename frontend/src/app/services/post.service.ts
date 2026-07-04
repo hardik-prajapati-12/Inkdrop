@@ -6,8 +6,7 @@ import { Post, PostsResponse, Comment, CommentStats } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class PostService {
-  private api = 'http://localhost:5000/api';
-
+  private api = 'https://inkdrop-5ngg.onrender.com/api';
   constructor(private http: HttpClient) {}
 
   // ── Public Posts ───────────────────────────────────────────
