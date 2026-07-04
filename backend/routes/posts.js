@@ -1,12 +1,16 @@
 // routes/posts.js
-const express  = require('express');
-const router   = express.Router();
-const Post     = require('../models/Post');
+const express = require('express');
+const router = express.Router();
+const Post = require('../models/Post');
 const { protect, adminOnly, authorOrAdmin, canManagePost } = require('../middleware/auth');
-const multer   = require('multer');
-const path     = require('path');
-const fs       = require('fs');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const mongoose = require('mongoose');
+
+router.get("/test", (req, res) => {
+  res.json({ message: "Posts router is working" });
+});
 
 // ── Multer config ─────────────────────────────────────────────
 const storage = multer.diskStorage({
@@ -76,7 +80,7 @@ async function buildStrictSearchQuery(search) {
     matchType: 'title',
     query: {
       $or: [
-        { title:   { $regex: regex } },
+        { title: { $regex: regex } },
         { excerpt: { $regex: regex } }
       ]
     }
@@ -89,18 +93,18 @@ async function buildStrictSearchQuery(search) {
 // ══════════════════════════════════════════════════════════════
 router.get('/', async (req, res) => {
   try {
-    const page   = parseInt(req.query.page)  || 1;
-    const limit  = parseInt(req.query.limit) || 6;
-    const skip   = (page - 1) * limit;
-    const search   = (req.query.search   || '').trim();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+    const search = (req.query.search || '').trim();
     const category = (req.query.category || '').trim();
-    const tag      = (req.query.tag      || '').trim();
+    const tag = (req.query.tag || '').trim();
 
     // No search → fast simple query
     if (!search) {
       const query = { status: 'published' };
       if (category) query.category = new mongoose.Types.ObjectId(category);
-      if (tag)      query.tags = { $in: [new RegExp('^' + tag + '$', 'i')] };
+      if (tag) query.tags = { $in: [new RegExp('^' + tag + '$', 'i')] };
 
       const total = await Post.countDocuments(query);
       const posts = await Post.find(query)
@@ -119,11 +123,11 @@ router.get('/', async (req, res) => {
     if (searchQuery.$or) {
       finalQuery = { status: 'published', $and: [{ $or: searchQuery.$or }] };
       if (category) finalQuery.category = new mongoose.Types.ObjectId(category);
-      if (tag)      finalQuery.tags = { $in: [new RegExp('^' + tag + '$', 'i')] };
+      if (tag) finalQuery.tags = { $in: [new RegExp('^' + tag + '$', 'i')] };
     } else {
       finalQuery = { status: 'published', ...searchQuery };
       if (category) finalQuery.category = new mongoose.Types.ObjectId(category);
-      if (tag)      finalQuery.tags = { $in: [new RegExp('^' + tag + '$', 'i')] };
+      if (tag) finalQuery.tags = { $in: [new RegExp('^' + tag + '$', 'i')] };
     }
 
     const total = await Post.countDocuments(finalQuery);
@@ -215,8 +219,10 @@ router.put('/:id', protect, authorOrAdmin, upload.single('coverImage'), async (r
       return res.status(403).json({ message: 'You can only edit your own posts.' });
 
     const { title, content, excerpt, category, tags, status } = req.body;
-    const update = { title, content, excerpt, category, status,
-      tags: tags ? JSON.parse(tags) : [] };
+    const update = {
+      title, content, excerpt, category, status,
+      tags: tags ? JSON.parse(tags) : []
+    };
     if (req.file) update.coverImage = `/uploads/${req.file.filename}`;
     if (req.body.removeCoverImage === 'true') update.coverImage = '';
 
