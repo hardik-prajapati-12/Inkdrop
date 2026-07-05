@@ -36,7 +36,7 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin');
+      this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin') || event.urlAfterRedirects.startsWith('/profile');
     });
   }
 }
