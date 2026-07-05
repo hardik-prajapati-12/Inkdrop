@@ -18,63 +18,88 @@ A beautifully designed, full-stack blog platform built with **MongoDB, Express.j
 ```
 blog-app/
 │
-├── 📦 backend/                       ← Node.js + Express + MongoDB
-│   ├── server.js                     ← Main server entry point
+├── 📦 backend/                             ← Node.js + Express + MongoDB
+│   ├── server.js                           ← Main server entry point
+│   ├── seed.js                             ← DB seeding script
+│   ├── fix-images.js                       ← Upload utility script
 │   ├── package.json
-│   ├── .env.example                  ← Copy to .env and fill in values
+│   ├── .env.example                        ← Copy to .env and fill in values
+│   │
+│   ├── config/
+│   │   └── mailer.js                       ← SMTP mail service utility
+│   │
+│   ├── middleware/
+│   │   └── auth.js                         ← JWT verification & adminOnly guard
 │   │
 │   ├── models/
-│   │   ├── User.js                   ← User schema (bcrypt passwords, roles)
-│   │   ├── Post.js                   ← Post schema (slug, views, likes, readTime)
-│   │   ├── Comment.js                ← Comment schema
-│   │   └── Category.js               ← Category schema (icon, color)
+│   │   ├── User.js                         ← User schema (bcrypt passwords, roles)
+│   │   ├── Post.js                         ← Post schema (slug, views, likes, readTime)
+│   │   ├── Comment.js                      ← Comment schema
+│   │   ├── Category.js                     ← Category schema (icon, color)
+│   │   ├── Message.js                      ← Contact message schema
+│   │   └── Settings.js                     ← Global settings schema
 │   │
-│   ├── routes/
-│   │   ├── auth.js                   ← POST /register, /login, GET /me
-│   │   ├── posts.js                  ← GET/POST/PUT/DELETE posts + like
-│   │   ├── comments.js               ← GET/POST/DELETE comments
-│   │   └── categories.js             ← GET/POST/DELETE categories
-│   │
-│   └── middleware/
-│       └── auth.js                   ← JWT protect + adminOnly guards
+│   └── routes/
+│       ├── auth.js                         ← auth routes (register, login, me, etc.)
+│       ├── posts.js                        ← post routes (CRUD, category filter, likes)
+│       ├── comments.js                     ← comment routes (get/create/delete)
+│       ├── categories.js                   ← category routes (get/create/delete)
+│       ├── messages.js                     ← message routes (create/get/delete)
+│       ├── settings.js                     ← settings configuration routes
+│       └── stats.js                        ← dashboard stats/metrics routes
 │
-└── 🅰️ frontend/                      ← Angular 16
+└── 🅰️ frontend/                            ← Angular 16
     ├── angular.json
     ├── package.json
     ├── tsconfig.json
     │
     └── src/
-        ├── index.html                ← Google Fonts included
+        ├── index.html                      ← Main HTML page (Google Fonts included)
         ├── main.ts
-        ├── styles.css                ← 🎨 Global design system (500+ lines)
+        ├── styles.css                      ← 🎨 Global design system
         │
         └── app/
-            ├── app.module.ts         ← Root NgModule
-            ├── app-routing.module.ts ← All routes defined
-            ├── app.component.ts      ← Root component
+            ├── app.module.ts               ← Root NgModule
+            ├── app-routing.module.ts       ← Routing definitions
+            ├── app.component.ts            ← Root layout component (conditional footer)
             │
             ├── models/
-            │   └── index.ts          ← TypeScript interfaces (User, Post, Comment...)
+            │   └── index.ts                ← TypeScript interfaces (User, Post, Comment...)
             │
             ├── services/
-            │   ├── auth.service.ts   ← Login, register, JWT storage
-            │   ├── post.service.ts   ← All HTTP API calls
-            │   └── auth.interceptor.ts ← Auto-attach JWT to requests
+            │   ├── auth.service.ts         ← User authentication & JWT management
+            │   ├── auth.interceptor.ts     ← Attaches JWT header automatically
+            │   ├── post.service.ts         ← Core HTTP API calls for blog posts
+            │   ├── message.service.ts      ← Core HTTP API calls for messages
+            │   ├── settings.service.ts     ← Global application settings management
+            │   └── scroll-to-top.service.ts ← Auto-scroll helpers on navigation
             │
             ├── guards/
-            │   ├── auth.guard.ts     ← Redirect to /login if not logged in
-            │   └── admin.guard.ts    ← Redirect to / if not admin
+            │   ├── auth.guard.ts           ← Route guard to protect authentications
+            │   ├── admin.guard.ts          ← Route guard for admin access
+            │   └── author.guard.ts         ← Route guard for author access
+            │
+            ├── pipes/
+            │   └── role-filter.pipe.ts     ← Custom filtering pipe for user roles
             │
             └── components/
-                ├── navbar/           ← Sticky blur navbar, mobile menu, user dropdown
-                ├── footer/           ← 4-column footer with social links
-                ├── home/             ← Hero, featured posts, categories, post grid, pagination
-                ├── blog-post/        ← Full article, like button, comments
-                ├── about/            ← Team section, values grid, mission
-                ├── contact/          ← Form, FAQ accordion, info cards
-                ├── login/            ← Login + register tabs with validation
-                ├── admin/            ← Dashboard: post CRUD, category management
-                └── category/         ← Posts filtered by category
+                ├── navbar/                 ← Blurry fixed header, user menu
+                ├── footer/                 ← Responsive 4-column footer
+                ├── home/                   ← Hero, categories, latest posts grid
+                ├── blog-post/              ← Full-article viewer, comments, likes
+                ├── about/                  ← Editorial overview, core values
+                ├── contact/                ← Interactive contact form, FAQ accordion
+                ├── login/                  ← Switchable tabbed Auth forms (Login & Register)
+                ├── reset-password/         ← OTP recovery & password update
+                ├── category/               ← Category-filtered post viewports
+                ├── tag/                    ← Tag-filtered post viewports
+                ├── legal/                  ← Terms & Conditions & Privacy tabs
+                ├── admin/                  ← Dashboard control center (CRUD admin views)
+                └── profile/                ← Static sidebar & custom-scroll right panel 🌟
+                    ├── profile.component.html
+                    ├── profile.component.css
+                    └── profile.component.ts
+
 ```
 
 ---
