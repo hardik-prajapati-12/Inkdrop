@@ -11,7 +11,7 @@ import { filter } from 'rxjs/operators';
     <main class="main-content">
       <router-outlet></router-outlet>
     </main>
-    <app-footer *ngIf="!isAdminRoute"></app-footer>
+    <app-footer *ngIf="showFooter"></app-footer>
   `,
   styles: [`
     .main-content {
@@ -21,7 +21,7 @@ import { filter } from 'rxjs/operators';
 })
 export class AppComponent implements OnInit {
   title = 'InkDrop Blog';
-  isAdminRoute = false;
+  showFooter = true;
 
   constructor(
     private scrollToTop: ScrollToTopService,
@@ -32,11 +32,17 @@ export class AppComponent implements OnInit {
     // Register the global scroll-to-top listener once on app start
     this.scrollToTop.init();
 
-    // Track active route to hide footer on admin pages
+    // Track active route to hide footer on admin, profile, login, and forgot-password pages
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.isAdminRoute = event.urlAfterRedirects.startsWith('/admin') || event.urlAfterRedirects.startsWith('/profile');
+      const url = event.urlAfterRedirects;
+      this.showFooter = !(
+        url.startsWith('/admin') ||
+        url.startsWith('/profile') ||
+        url.startsWith('/login') ||
+        url.startsWith('/forgot-password')
+      );
     });
   }
 }
