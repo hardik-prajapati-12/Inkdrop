@@ -5,7 +5,10 @@
   <div class="auth-container fade-in">
 
     <!-- Brand -->
-    <a routerLink="/" class="auth-brand"><span>✒</span> InkDrop</a>
+    <a routerLink="/" class="auth-brand">
+      <span class="auth-brand-icon">✒</span>
+      <span class="auth-brand-name">InkDrop</span>
+    </a>
 
     <!-- Session expired banner -->
     <div class="session-banner" *ngIf="sessionMsg">

@@ -35,7 +35,7 @@
   margin-bottom: 16px;
 }
 
-.footer-brand::after { content: '.'; color: var(--accent); }
+.footer-brand-name::after { content: '.'; color: var(--accent); }
 
 .footer-brand-icon { font-size: 1.5rem; color: var(--accent); }
 
