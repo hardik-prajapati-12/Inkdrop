@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ── Database Connection ─────────────────────
-mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://hardikprajapati73116_db_user:30gbZwBOdwtkEDxf@blog.cwwwlr4.mongodb.net/?appName=blog')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://hardikprajapati73116_db_user:30gbZwBOdwtkEDxf@blog.cwwwlr4.mongodb.net/blogdb?appName=blog')
   .then(() => console.log('✅  MongoDB connected successfully'))
   .catch(err => console.error('❌  MongoDB connection error:', err));
 

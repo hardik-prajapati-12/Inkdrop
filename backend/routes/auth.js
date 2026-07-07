@@ -97,9 +97,10 @@ router.post('/avatar', protect, avatarUpload.single('avatar'), async (req, res) 
         await deleteFromCloudinary(existing.avatar);
       } else if (!existing.avatar.startsWith('http')) {
         const oldPath = path.join(__dirname, '..', existing.avatar.replace(/^\//, ''));
-        if (fs.existsSync(oldPath)) {
-          try { fs.unlinkSync(oldPath); } catch (_) { /* ignore */ }
-        }
+        // Do NOT delete local images stored on local device
+        // if (fs.existsSync(oldPath)) {
+        //   try { fs.unlinkSync(oldPath); } catch (_) { /* ignore */ }
+        // }
       }
     }
 
@@ -129,9 +130,10 @@ router.delete('/avatar', protect, async (req, res) => {
         await deleteFromCloudinary(user.avatar);
       } else if (!user.avatar.startsWith('http')) {
         const oldPath = path.join(__dirname, '..', user.avatar.replace(/^\//, ''));
-        if (fs.existsSync(oldPath)) {
-          try { fs.unlinkSync(oldPath); } catch (_) { /* ignore */ }
-        }
+        // Do NOT delete local images stored on local device
+        // if (fs.existsSync(oldPath)) {
+        //   try { fs.unlinkSync(oldPath); } catch (_) { /* ignore */ }
+        // }
       }
     }
 

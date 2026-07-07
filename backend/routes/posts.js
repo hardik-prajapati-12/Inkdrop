@@ -235,9 +235,10 @@ router.put('/:id', protect, authorOrAdmin, upload.single('coverImage'), async (r
           await deleteFromCloudinary(post.coverImage);
         } else if (!post.coverImage.startsWith('http')) {
           const oldPath = path.join(__dirname, '..', post.coverImage.replace(/^\//, ''));
-          if (fs.existsSync(oldPath)) {
-            try { fs.unlinkSync(oldPath); } catch (_) {}
-          }
+          // Do NOT delete local images stored on local device
+          // if (fs.existsSync(oldPath)) {
+          //   try { fs.unlinkSync(oldPath); } catch (_) {}
+          // }
         }
       }
       update.coverImage = await uploadToCloudinary(req.file.path, 'inkdrop/posts');
@@ -249,9 +250,10 @@ router.put('/:id', protect, authorOrAdmin, upload.single('coverImage'), async (r
           await deleteFromCloudinary(post.coverImage);
         } else if (!post.coverImage.startsWith('http')) {
           const oldPath = path.join(__dirname, '..', post.coverImage.replace(/^\//, ''));
-          if (fs.existsSync(oldPath)) {
-            try { fs.unlinkSync(oldPath); } catch (_) {}
-          }
+          // Do NOT delete local images stored on local device
+          // if (fs.existsSync(oldPath)) {
+          //   try { fs.unlinkSync(oldPath); } catch (_) {}
+          // }
         }
       }
       update.coverImage = '';
@@ -279,9 +281,10 @@ router.delete('/:id', protect, authorOrAdmin, async (req, res) => {
         await deleteFromCloudinary(post.coverImage);
       } else if (!post.coverImage.startsWith('http')) {
         const oldPath = path.join(__dirname, '..', post.coverImage.replace(/^\//, ''));
-        if (fs.existsSync(oldPath)) {
-          try { fs.unlinkSync(oldPath); } catch (_) {}
-        }
+        // Do NOT delete local images stored on local device
+        // if (fs.existsSync(oldPath)) {
+        //   try { fs.unlinkSync(oldPath); } catch (_) {}
+        // }
       }
     }
 

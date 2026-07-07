@@ -1,6 +1,10 @@
 // backend/config/cloudinary.js
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
+const path = require('path');
+
+// Ensure environment variables are loaded (especially when imported by standalone scripts)
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // Configure Cloudinary using environment variables
 cloudinary.config({
@@ -30,21 +34,21 @@ const uploadToCloudinary = async (localFilePath, folder) => {
       resource_type: 'auto'
     });
 
-    // Delete local file after successful upload
-    if (fs.existsSync(localFilePath)) {
-      try { fs.unlinkSync(localFilePath); } catch (_) {}
-    }
+    // Do NOT delete local file after successful upload (keep on local device)
+    // if (fs.existsSync(localFilePath)) {
+    //   try { fs.unlinkSync(localFilePath); } catch (_) {}
+    // }
 
     return result.secure_url;
   } catch (error) {
-    // Make sure we delete local file even if upload fails
-    if (localFilePath && fs.existsSync(localFilePath)) {
-      try {
-        fs.unlinkSync(localFilePath);
-      } catch (err) {
-        console.error('Error deleting local file after upload failure:', err);
-      }
-    }
+    // Do NOT delete local file even if upload fails (keep on local device)
+    // if (localFilePath && fs.existsSync(localFilePath)) {
+    //   try {
+    //     fs.unlinkSync(localFilePath);
+    //   } catch (err) {
+    //     console.error('Error deleting local file after upload failure:', err);
+    //   }
+    // }
     throw error;
   }
 };
