@@ -4,6 +4,7 @@ const router  = express.Router();
 const jwt     = require('jsonwebtoken');
 const User    = require('../models/User');
 const { protect, adminOnly } = require('../middleware/auth');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
@@ -89,20 +90,24 @@ router.post('/avatar', protect, avatarUpload.single('avatar'), async (req, res) 
   try {
     if (!req.file) return res.status(400).json({ message: 'No image file provided.' });
 
-    // Delete the old avatar file if it was a local upload
+    // Delete the old avatar file if it was a local or Cloudinary upload
     const existing = await User.findById(req.user._id);
-    if (existing && existing.avatar && !existing.avatar.startsWith('http')) {
-      const oldPath = path.join(__dirname, '..', existing.avatar.replace(/^\//, ''));
-      if (fs.existsSync(oldPath)) {
-        try { fs.unlinkSync(oldPath); } catch (_) { /* ignore */ }
+    if (existing && existing.avatar) {
+      if (existing.avatar.includes('cloudinary.com')) {
+        await deleteFromCloudinary(existing.avatar);
+      } else if (!existing.avatar.startsWith('http')) {
+        const oldPath = path.join(__dirname, '..', existing.avatar.replace(/^\//, ''));
+        if (fs.existsSync(oldPath)) {
+          try { fs.unlinkSync(oldPath); } catch (_) { /* ignore */ }
+        }
       }
     }
 
-    // Store path relative to server root (e.g. /uploads/avatars/avatar-xxx.jpg)
-    const avatarPath = '/uploads/avatars/' + req.file.filename;
+    // Upload to Cloudinary
+    const avatarUrl = await uploadToCloudinary(req.file.path, 'inkdrop/avatars');
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { avatar: avatarPath },
+      { avatar: avatarUrl },
       { new: true }
     );
 
@@ -118,11 +123,15 @@ router.delete('/avatar', protect, async (req, res) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
-    // Delete local file if it exists
-    if (user.avatar && !user.avatar.startsWith('http')) {
-      const filePath = path.join(__dirname, '..', user.avatar.replace(/^\//, ''));
-      if (fs.existsSync(filePath)) {
-        try { fs.unlinkSync(filePath); } catch (_) { /* ignore */ }
+    // Delete the avatar image from Cloudinary or local files if it exists
+    if (user.avatar) {
+      if (user.avatar.includes('cloudinary.com')) {
+        await deleteFromCloudinary(user.avatar);
+      } else if (!user.avatar.startsWith('http')) {
+        const oldPath = path.join(__dirname, '..', user.avatar.replace(/^\//, ''));
+        if (fs.existsSync(oldPath)) {
+          try { fs.unlinkSync(oldPath); } catch (_) { /* ignore */ }
+        }
       }
     }
 
@@ -132,7 +141,7 @@ router.delete('/avatar', protect, async (req, res) => {
       { new: true }
     );
 
-    res.json({ message: 'Profile photo removed.', user: updatedUser });
+    res.json({ message: 'Profile photo removed successfully!', user: updatedUser });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

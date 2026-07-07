@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
 const { protect, adminOnly, authorOrAdmin, canManagePost } = require('../middleware/auth');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -196,7 +197,10 @@ router.get('/:slug', async (req, res) => {
 router.post('/', protect, authorOrAdmin, upload.single('coverImage'), async (req, res) => {
   try {
     const { title, content, excerpt, category, tags, status } = req.body;
-    const coverImage = req.file ? `/uploads/${req.file.filename}` : '';
+    let coverImage = '';
+    if (req.file) {
+      coverImage = await uploadToCloudinary(req.file.path, 'inkdrop/posts');
+    }
     const post = await Post.create({
       title, content, excerpt, category,
       tags: tags ? JSON.parse(tags) : [],
@@ -223,8 +227,35 @@ router.put('/:id', protect, authorOrAdmin, upload.single('coverImage'), async (r
       title, content, excerpt, category, status,
       tags: tags ? JSON.parse(tags) : []
     };
-    if (req.file) update.coverImage = `/uploads/${req.file.filename}`;
-    if (req.body.removeCoverImage === 'true') update.coverImage = '';
+
+    if (req.file) {
+      // Delete old cover image from Cloudinary or local files if it exists
+      if (post.coverImage) {
+        if (post.coverImage.includes('cloudinary.com')) {
+          await deleteFromCloudinary(post.coverImage);
+        } else if (!post.coverImage.startsWith('http')) {
+          const oldPath = path.join(__dirname, '..', post.coverImage.replace(/^\//, ''));
+          if (fs.existsSync(oldPath)) {
+            try { fs.unlinkSync(oldPath); } catch (_) {}
+          }
+        }
+      }
+      update.coverImage = await uploadToCloudinary(req.file.path, 'inkdrop/posts');
+    }
+
+    if (req.body.removeCoverImage === 'true') {
+      if (post.coverImage) {
+        if (post.coverImage.includes('cloudinary.com')) {
+          await deleteFromCloudinary(post.coverImage);
+        } else if (!post.coverImage.startsWith('http')) {
+          const oldPath = path.join(__dirname, '..', post.coverImage.replace(/^\//, ''));
+          if (fs.existsSync(oldPath)) {
+            try { fs.unlinkSync(oldPath); } catch (_) {}
+          }
+        }
+      }
+      update.coverImage = '';
+    }
 
     const updated = await Post.findByIdAndUpdate(req.params.id, update,
       { new: true, runValidators: true })
@@ -241,6 +272,19 @@ router.delete('/:id', protect, authorOrAdmin, async (req, res) => {
     if (!post) return res.status(404).json({ message: 'Post not found.' });
     if (!canManagePost(post, req.user))
       return res.status(403).json({ message: 'You can only delete your own posts.' });
+
+    // Delete cover image from Cloudinary or local files if it exists
+    if (post.coverImage) {
+      if (post.coverImage.includes('cloudinary.com')) {
+        await deleteFromCloudinary(post.coverImage);
+      } else if (!post.coverImage.startsWith('http')) {
+        const oldPath = path.join(__dirname, '..', post.coverImage.replace(/^\//, ''));
+        if (fs.existsSync(oldPath)) {
+          try { fs.unlinkSync(oldPath); } catch (_) {}
+        }
+      }
+    }
+
     await Post.findByIdAndDelete(req.params.id);
     res.json({ message: 'Post deleted successfully.' });
   } catch (err) { res.status(500).json({ message: err.message }); }
